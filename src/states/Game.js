@@ -8,6 +8,7 @@ import _ from 'lodash';
 import {
   resetGameGrid,
   getRangeForCurrentPlayer,
+  clearDrawnTiles,
 } from 'utils';
 
 const map = [
@@ -53,8 +54,7 @@ export default class extends Phaser.State {
   preload() {}
 
   updateCurrentDrawnTiles = (tiles) => {
-    console.log({ tiles })
-    // this.gameState.drawn = tiles;
+    this.gameState.drawn = tiles;
   }
 
   drawCharacterRange = (player, range) => {
@@ -101,10 +101,9 @@ export default class extends Phaser.State {
   }
 
   handlePlayerDown = (player) => {
-    /*
-    * () => clear the current draw
-    * () => clear the path
-    */
+    clearDrawnTiles(this.gameState.drawn);
+    this.updateCurrentDrawnTiles([]);
+
     const playerPosition = {
       row: player.state.get('row'),
       col: player.state.get('col'),

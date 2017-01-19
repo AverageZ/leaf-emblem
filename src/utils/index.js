@@ -14,6 +14,7 @@ function tileIsObstacle(tile) {
 * resetGameGrid :: Array -> Mutation
 * getNeighborsForTile :: Object, Array -> Array
 * getRangeForCurrentPlayer :: Object, Array -> Array
+* clearDrawnTiles :: Array -> Mutation
 *
 */
 
@@ -75,12 +76,12 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
   * Set up the local variables
   */
   let visitedTiles = _.fill(Array(1), currentTile);
-  let frontier = _.fill(Array(1), currentTile);
+  let boundary = _.fill(Array(1), currentTile);
 
   /* A set of training wheels, if you will */
   let i = 0;
 
-  while (frontier.length !== 0 && i < 1000) {
+  while (boundary.length !== 0 && i < 1000) {
     i++;
     /*
     * Grab the first item in the array
@@ -92,7 +93,7 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
 
       console.log(a, b); // [2, 3], 1
     */
-    const activeTile = frontier.shift();
+    const activeTile = boundary.shift();
 
     /*
     * As long as the tile is not already in the visited list and its not
@@ -121,10 +122,17 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
       if (nextDepth < neighbor.depth) {
         neighbor.depth = nextDepth;
         neighbor.cameFrom = activeTile;
-        frontier.push(neighbor);
+        boundary.push(neighbor);
       }
     });
   }
 
   return visitedTiles;
+}
+
+/*
+* clearDrawnTiles :: Array -> Mutation
+*/
+export function clearDrawnTiles(tiles) {
+  _.forEach(tiles, (tile) => tile.destroy());
 }
