@@ -29,9 +29,9 @@ const map = [
 ];
 
 const units = [
-  { moves: 5, range: 1, color: 0x2196F3, row: 1, col: 12, maxHealth: 10, team: 'player' },
-  { moves: 4, range: 1, color: 0x2196F3, row: 6, col: 9, maxHealth: 10, team: 'player' },
-  { moves: 6, range: 1, color: 0xEF5350, row: 2, col: 2, maxHealth: 10, team: 'enemy' },
+  { moves: 5, range: 1, color: 0x03A9F4, row: 0, col: 19, maxHealth: 10, team: 'player' },
+  { moves: 4, range: 1, color: 0x03A9F4, row: 6, col: 9, maxHealth: 10, team: 'player' },
+  { moves: 6, range: 1, color: 0xF44336, row: 2, col: 2, maxHealth: 10, team: 'enemy' },
 ];
 
 // const playerUnits = [];
@@ -46,20 +46,71 @@ export default class extends Phaser.State {
     turn: '',
     units,
     currentPath: {},
-    drawn: {},
+    drawn: [],
   }
-
-  // updateState = (newState) => {
-  //   this.gameState = this.gameState.merge(newState);
-  // }
 
   init() {}
   preload() {}
 
+  updateCurrentDrawnTiles = (tiles) => {
+    console.log({ tiles })
+    // this.gameState.drawn = tiles;
+  }
+
+  drawCharacterRange = (player, range) => {
+    const tileSize = this.game.globalState.get('tileSize');
+    const gamePointer = this.game;
+
+    /*
+    * createTile :: Int, Int, Int -> Object
+    */
+    function createTile(row, col, color) {
+      const newTile = gamePointer.add.sprite(col * tileSize, row * tileSize, 'tiles');
+      newTile.frame = 1;
+      newTile.tint = color;
+      newTile.alpha = 0.7;
+      newTile.row = row,
+      newTile.col = col;
+
+      return newTile;
+    }
+
+    /*
+    * Iterate over the range
+    * If the tile in range has a depth that is less than or equal to the
+    * player's moves, we color it blue.
+    * Else the tile gets colored red to mark end of the move range for player
+    */
+    // const drawnTiles = _.map(range, (tile) => {
+    //   if (tile.depth <= player.state.get('moves')) {
+    //     return createTile(tile.state.get('col'), tile.state.get('row'), 0x2196F3);
+    //   } else {
+    //     return createTile(tile.state.get('col'), tile.state.get('row'), 0xFF5252);
+    //   }
+    // });
+
+    const drawnTiles = _.map(range, (tile) =>
+      createTile(
+        tile.state.get('row'),
+        tile.state.get('col'),
+        tile.depth <= player.state.get('moves') ? 0x2196F3 : 0xFF5252
+      )
+    );
+
+    /*
+    * Apply the newly created list to the gameState
+    */
+    this.updateCurrentDrawnTiles(drawnTiles);
+
+    /*
+    * Move units to top
+    */
+  }
+
   handlePlayerDown = (player) => {
     /*
-    * clear the current draw
-    * clear the path
+    * () => clear the current draw
+    * () => clear the path
     */
     const playerPosition = {
       row: player.state.get('row'),
@@ -74,7 +125,7 @@ export default class extends Phaser.State {
     resetGameGrid(this.gameState.grid);
 
     /* get range */
-    const range = getRangeForCurrentPlayer(player, this.gameState.grid);
+    this.drawCharacterRange(player, getRangeForCurrentPlayer(player, this.gameState.grid));
   }
 
   handleEnemyDown = () => {
