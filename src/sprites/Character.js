@@ -11,8 +11,8 @@ export default class Character extends Phaser.Sprite {
     );
 
     this.frame = 1;
-    this.anchor.setTo(-0.5,-0.5);
-    this.scale.setTo(0.5);
+    // this.anchor.setTo(-0.5,-0.5);
+    // this.scale.setTo(0.5);
     this.color = color;
     this.tint = color;
 
