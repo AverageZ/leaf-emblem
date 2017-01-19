@@ -1,15 +1,25 @@
 import _ from 'lodash';
 
+/*
+* tileIsObstacle :: Object -> Boolean
+*/
 function tileIsObstacle(tile) {
-  tile.state.get('isObstacle');
+  return tile.state.get('isObstacle');
 }
 
 /*
 *
 * Exports
+* centerGameObjects :: Array -> Mutation
+* resetGameGrid :: Array -> Mutation
+* getNeighborsForTile :: Object, Array -> Array
+* getRangeForCurrentPlayer :: Object, Array -> Array
 *
 */
 
+/*
+* centerGameObjects :: Array -> Mutation
+*/
 export function centerGameObjects(objects) {
   _.each(objects, (object) => object.anchor.setTo(0.5));
 }
@@ -31,18 +41,22 @@ export function resetGameGrid(grid) {
 export function getNeighborsForTile(tile, gameGrid) {
   const adjacentTiles = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 
-  return _.filter(adjacentTiles, (adjTile, index) => {
-    const row = tile.state.get('row') + _.head(adjTile);
-    const col = tile.state.get('col') + _.last(adjTile);
+  return _.reduce(adjacentTiles, (acc, adjTile) => {
+    const row = tile.state.get('row') + adjTile[0];
+    const col = tile.state.get('col') + adjTile[1];
 
     if (row >= 0 && row <= gameGrid.length - 1 && col >= 0 && col <= gameGrid[0].length - 1) {
-      return gameGrid[row][col];
+      return _.concat(acc, gameGrid[row][col]);
     }
-  });
+
+    return acc;
+  }, []);
 }
 
 /*
-* getRangeForCurrentPlayer :: Object, Array -> Array?
+* TODO: Possibly break this up into smaller chunks, the neighbor iteration towards the end
+* could be pulled apart
+* getRangeForCurrentPlayer :: Object, Array -> Array
 * @param {Phaser Object} player - The sprite for which we are trying to determine the range
 * @param {Array} gameGrid - A nested array of Tiles
 */
@@ -61,9 +75,13 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
   * Set up the local variables
   */
   let visitedTiles = _.fill(Array(1), currentTile);
-  let frontier = visitedTiles;
+  let frontier = _.fill(Array(1), currentTile);
 
-  while (frontier.length !== 0) {
+  /* A set of training wheels, if you will */
+  let i = 0;
+
+  while (frontier.length !== 0 && i < 1000) {
+    i++;
     /*
     * Grab the first item in the array
     * https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Array/shift
@@ -75,8 +93,6 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
       console.log(a, b); // [2, 3], 1
     */
     const activeTile = frontier.shift();
-
-    console.log({activeTile})
 
     /*
     * As long as the tile is not already in the visited list and its not
@@ -92,19 +108,15 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
     const neighbors = getNeighborsForTile(activeTile, gameGrid);
 
     _.forEach(neighbors, (neighbor) => {
-      let nextDepth = activeTile.depth + Math.max(neighbor.cost, activeTile.cost);
+      let nextDepth = activeTile.depth + Math.max(neighbor.state.get('cost'), activeTile.state.get('cost'));
 
-      console.log({ neighbor, neighbors })
+      if (tileIsObstacle(neighbor) /* || neighbor.containsEnemy */ || nextDepth > player.state.get('moves')) {
+        nextDepth = Math.max(activeTile.depth + 1, player.state.get('moves') + 1);
 
-      if (tileIsObstacle(neighbor) /* || neighbor.containsEnemy */ || nextDepth > player.moves) {
-        nextDepth = Math.max(activeTile.depth + 1, player.moves + 1);
-
-        if (nextDepth > player.moves + player.range) {
+        if (nextDepth > player.state.get('moves') + player.state.get('range')) {
           return;
         }
       }
-
-      console.log('this')
 
       if (nextDepth < neighbor.depth) {
         neighbor.depth = nextDepth;
@@ -113,8 +125,6 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
       }
     });
   }
-
-  console.log({ visitedTiles })
 
   return visitedTiles;
 }
