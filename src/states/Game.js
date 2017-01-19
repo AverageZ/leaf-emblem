@@ -81,19 +81,11 @@ export default class extends Phaser.State {
     * player's moves, we color it blue.
     * Else the tile gets colored red to mark end of the move range for player
     */
-    // const drawnTiles = _.map(range, (tile) => {
-    //   if (tile.depth <= player.state.get('moves')) {
-    //     return createTile(tile.state.get('col'), tile.state.get('row'), 0x2196F3);
-    //   } else {
-    //     return createTile(tile.state.get('col'), tile.state.get('row'), 0xFF5252);
-    //   }
-    // });
-
     const drawnTiles = _.map(range, (tile) =>
       createTile(
         tile.state.get('row'),
         tile.state.get('col'),
-        tile.depth <= player.state.get('moves') ? 0x2196F3 : 0xFF5252
+        tile.depth <= player.state.get('moves') ? 0x0000FF : 0xFF0000
       )
     );
 
@@ -105,6 +97,7 @@ export default class extends Phaser.State {
     /*
     * Move units to top
     */
+    this.moveUnitsToTop();
   }
 
   handlePlayerDown = (player) => {
@@ -188,5 +181,9 @@ export default class extends Phaser.State {
   }
 
   render() {
+  }
+
+  moveUnitsToTop = () => {
+    _.forEach(this.gameState.units, (unit) => this.game.world.bringToTop(unit));
   }
 }
