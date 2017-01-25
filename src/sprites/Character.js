@@ -1,5 +1,7 @@
 import Phaser from 'phaser';
 import { fromJS } from 'immutable';
+import { createPlayerPath } from 'utils';
+import _ from 'lodash';
 
 export default class Character extends Phaser.Sprite {
   constructor({ game, moves, range, color, col, row, maxHealth, team, onInputDown }) {
@@ -11,8 +13,6 @@ export default class Character extends Phaser.Sprite {
     );
 
     this.frame = 1;
-    // this.anchor.setTo(-0.5,-0.5);
-    // this.scale.setTo(0.5);
     this.color = color;
     this.tint = color;
 
@@ -32,13 +32,11 @@ export default class Character extends Phaser.Sprite {
     game.add.existing(this);
   }
 
-  addHealthBar = () => {
-    console.log('addHealthBar')
-  }
+  addHealthBar = () => {}
 
-  isPlayerType = () => {
-    return this.state.get('team') === 'player';
-  }
+  isPlayerType = () => (
+    this.state.get('team') === 'player'
+  )
 
   resetMovement = () => {
     this.state.set('didMove', false);
@@ -48,15 +46,54 @@ export default class Character extends Phaser.Sprite {
     this.inputEnabled = true;
   }
 
-  updateHealth = () => {
-    console.log('updateHealth')
+  updateHealth = () => {}
+
+  followPath = (path) => {
+    const unitTween = this.game.add.tween(this);
+    const tileSize = this.game.globalState.get('tileSize');
+    let currentCost = 0;
+
+    /*
+    * TODO: update moves pool
+    */
+    // while (path.length > 0) {
+    //   const nextTile = path.pop();
+    //   console.log({ nextTile })
+
+    //   unitTween.to({
+    //     x: nextTile.state.get('col') * tileSize,
+    //     y: nextTile.state.get('row') * tileSize,
+    //   }, 300 * Math.max(nextTile.cost, currentCost), Phaser.Easing.Linear.None);
+
+    //   currentCost = nextTile.cost;
+    // }
+
+    // console.log('getting here?')
+
+    _.forEach(_.reverse(path), (tile) => {
+      unitTween.to({
+        x: tile.state.get('col') * tileSize,
+        y: tile.state.get('row') * tileSize,
+      }, 300 * Math.max(tile.state.get('cost'), currentCost), Phaser.Easing.Linear.None);
+
+      currentCost = tile.state.get('cost');
+    });
+
+    unitTween.start();
+
+    /*
+    * Grey out moved player
+    */
+    // unitTween.onComplete.add(onComplete);
   }
 
-  followPath = () => {
-    console.log('followPath')
-  }
+  move = ({ endLocation, currentLocation }) => {
+    const playerPath = createPlayerPath(endLocation);
+    /*
+    * The current tile now no longer has player
+    */
+    currentLocation.setContainsPlayer(false);
 
-  move = () => {
-    console.log('move')
+    this.followPath(playerPath);
   }
 }
