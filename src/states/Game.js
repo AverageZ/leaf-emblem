@@ -12,21 +12,21 @@ import {
 } from 'utils';
 
 const map = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1],
-  [1,1,2,2,2,1,1,1,0,1,0,1,1,1,1,1,1,1,1,1],
-  [1,1,2,2,2,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,2,1,1,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 93, 93, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 88, 89, 88, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 88, 93, 88, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 88, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 93, 2, 2, 2, 88, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 93, 93, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 93, 2, 93, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2],
+  [2, 2, 2, 2, 2, 2, 2, 28, 21, 21, 21, 29, 46, 28, 21, 21, 21, 21, 21, 21],
+  [28, 21, 26, 21, 21, 21, 21, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 ];
 
 const units = [
@@ -42,24 +42,56 @@ const units = [
 
 export default class extends Phaser.State {
   gameState = {
-    gameMap: map,
-    grid: [],
-    turn: '',
     units,
-    currentPath: {},
+    gameMap: map,
+    turn: '',
+    grid: [],
     drawn: [],
+    currentPath: [],
   }
 
   init() {}
   preload() {}
 
-  updateCurrentDrawnTiles = (tiles) => {
-    this.gameState.drawn = tiles;
+  updateCurrentStateTiles = (key, tiles) => {
+    this.gameState[key] = tiles;
+  }
+
+  drawPath = (start, end) => {
+    clearDrawnTiles(this.gameState.currentPath);
+    this.updateCurrentStateTiles('currentPath', []);
+
+    const tileSize = this.game.globalState.get('tileSize');
+    const gamePointer = this.game;
+    const newPath = [];
+    let destination = end;
+
+    function createPathTile(col, row) {
+      const newTile = gamePointer.add.sprite(col, row, 'tiles');
+      newTile.frame = 1;
+      newTile.tint = 0x00FF00;
+      newTile.alpha = 0.5;
+
+      return newTile;
+    }
+
+    while (destination.cameFrom) {
+      newPath.push(createPathTile(destination.state.get('col') * tileSize, destination.state.get('row') * tileSize));
+      destination = destination.cameFrom;
+    }
+
+    newPath.push(createPathTile(start.state.get('col') * tileSize, start.state.get('row') * tileSize));
+
+    this.updateCurrentStateTiles('currentPath', newPath);
   }
 
   drawCharacterRange = (player, range) => {
+    const { grid } = this.gameState;
+    const self = this;
     const tileSize = this.game.globalState.get('tileSize');
+    const drawPath = this.drawPath;
     const gamePointer = this.game;
+    const currentLocation = grid[player.state.get('row')][player.state.get('col')];
 
     /*
     * createTile :: Int, Int, Int -> Object
@@ -67,10 +99,33 @@ export default class extends Phaser.State {
     function createTile(row, col, color) {
       const newTile = gamePointer.add.sprite(col * tileSize, row * tileSize, 'tiles');
       newTile.frame = 1;
-      newTile.tint = color;
       newTile.alpha = 0.7;
-      newTile.row = row,
+      newTile.tint = color;
+      newTile.row = row;
       newTile.col = col;
+
+      /*
+      * Used to allow movement
+      */
+      newTile.inputEnabled = true;
+
+      if (color !== 0xFF0000) {
+        newTile.events.onInputOver.add((tile) => {
+          drawPath(player, grid[tile.row][tile.col]);
+          gamePointer.world.bringToTop(player);
+        }, this);
+
+        newTile.events.onInputDown.add((tile) => {
+          // player.inputEnabled = false;
+
+          clearDrawnTiles(self.gameState.currentPath);
+          clearDrawnTiles(self.gameState.drawn);
+          player.move({
+            endLocation: grid[tile.row][tile.col],
+            currentLocation,
+          });
+        }, this);
+      }
 
       return newTile;
     }
@@ -92,7 +147,7 @@ export default class extends Phaser.State {
     /*
     * Apply the newly created list to the gameState
     */
-    this.updateCurrentDrawnTiles(drawnTiles);
+    this.updateCurrentStateTiles('drawn', drawnTiles);
 
     /*
     * Move units to top
@@ -102,15 +157,7 @@ export default class extends Phaser.State {
 
   handlePlayerDown = (player) => {
     clearDrawnTiles(this.gameState.drawn);
-    this.updateCurrentDrawnTiles([]);
-
-    const playerPosition = {
-      row: player.state.get('row'),
-      col: player.state.get('col'),
-    };
-
-    const playerTile = this.gameState.grid[playerPosition.row][playerPosition.col];
-
+    this.updateCurrentStateTiles('drawn', []);
     /*
     * Reset the game grid depth values
     */
@@ -137,24 +184,31 @@ export default class extends Phaser.State {
   }
 
   createUnits = (unitList) => {
+    const { game } = this;
     const handlerFunctions = {
       player: this.handlePlayerDown,
       enemy: this.handleEnemyDown,
     };
 
-    this.gameState.units = _.map(unitList, (unit) => {
-      return new Character({
+    this.gameState.units = _.map(unitList, (unit) => (
+      new Character({
         ...unit,
         game,
         onInputDown: handlerFunctions[unit.team],
-      });
-    });
+      })
+    ));
   }
 
   create() {
     const tileSize = this.game.globalState.get('tileSize');
     const columns = this.game.width / tileSize;
     const rows = this.game.height / tileSize;
+
+
+    this.game.scale.maxWidth = 640 * 2;
+    this.game.scale.maxHeight = 480 * 2;
+    this.game.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL;
+    // this.game.scale.setScreenSize();
 
     this.createGameMap(rows, columns);
     this.createUnits(this.gameState.units);
@@ -171,11 +225,11 @@ export default class extends Phaser.State {
     * Make the player units clickable
     */
     _.flow([
-      (units) => _.filter(units, (unit) => unit.isPlayerType()),
-      (units) => _.map(units, (unit) => {
+      (list) => _.filter(list, (unit) => unit.isPlayerType()),
+      (list) => _.map(list, (unit) => {
         unit.enableInput();
         unit.resetMovement();
-      })
+      }),
     ])(this.gameState.units);
   }
 
