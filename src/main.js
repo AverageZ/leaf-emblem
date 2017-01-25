@@ -16,14 +16,15 @@ class Game extends Phaser.Game {
     /*
     * TODO: set up dynamic creation of height/width with map
     */
-    super(640 / multiplier, 480 / multiplier, Phaser.CANVAS, 'content', null);
+    // super(64 * 20, 48 * 20, Phaser.CANVAS, 'content', null);
+    super(640 * 2, 480 * 2, Phaser.CANVAS, 'content', null);
 
     this.state.add('Boot', BootState, false);
     this.state.add('Splash', SplashState, false);
     this.state.add('Game', GameState, false);
 
     this.globalState = fromJS({
-      tileSize: 32 / multiplier,
+      tileSize: 64 / multiplier,
     });
 
     this.state.start('Boot');
