@@ -11,7 +11,7 @@ export default class Tile extends Phaser.Sprite {
       type
     );
 
-    // this.game = game;
+    this.game = game;
     this.state = fromJS({
       isObstacle: !type,
       row,
@@ -20,5 +20,13 @@ export default class Tile extends Phaser.Sprite {
     });
 
     game.add.existing(this);
+  }
+
+  /*
+  * Provides a setter for checking if a tile has a player
+  * @param {Boolean} value
+  */
+  setContainsPlayer = (value = false) => {
+    this.state.set('containsPlayer', value);
   }
 }
