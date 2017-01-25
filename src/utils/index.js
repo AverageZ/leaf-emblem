@@ -75,8 +75,8 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
   /*
   * Set up the local variables
   */
-  let visitedTiles = _.fill(Array(1), currentTile);
-  let boundary = _.fill(Array(1), currentTile);
+  const visitedTiles = _.fill(Array(1), currentTile);
+  const boundary = _.fill(Array(1), currentTile);
 
   /* A set of training wheels, if you will */
   let i = 0;
@@ -135,4 +135,19 @@ export function getRangeForCurrentPlayer(player, gameGrid) {
 */
 export function clearDrawnTiles(tiles) {
   _.forEach(tiles, (tile) => tile.destroy());
+}
+
+/*
+* createPlayerPath :: Object -> Array
+*/
+export function createPlayerPath(end) {
+  const path = [];
+  let destination = end;
+
+  while (destination.cameFrom) {
+    path.push(destination);
+    destination = destination.cameFrom;
+  }
+
+  return path;
 }
